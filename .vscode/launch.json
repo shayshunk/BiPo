@@ -1,0 +1,21 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "(gdb) root-macro",
+      "type": "cppdbg",
+      "request": "launch",
+      "program": "/home/shay/Documents/root/bin/root.exe",
+      "args": [
+        "-l",
+        "-q",
+        "${file}+g"
+      ],
+      "stopAtEntry": false,
+      "cwd": "${fileDirname}",
+      "environment": [],
+      "externalConsole": false,
+      "MIMode": "gdb"
+    }
+  ]
+}
