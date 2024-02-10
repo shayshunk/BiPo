@@ -1,0 +1,42 @@
+# Ignore all pictures
+*.png
+# Don't ignore README images
+!PROSPECT.png
+!AngleOutput.png
+!DirectionalityPlots/FinalPlot.png
+
+# Ignore all hidden files
+.*
+# Don't ignore gitignore
+!.gitignore
+
+# Ignore all data files and text files
+*.root
+*.txt
+*.pdf
+
+# Ignore vscode
+.vscode
+.git
+
+# Ignore meitner
+meitner
+
+# Ignore email
+sj622@meitner.wlab.yale.edu
+
+# Ignore all debug files
+*.so
+*.d
+*.pcm
+
+# Ignore old versions of the code
+AveragePrompt
+GeneralHeader.h
+Directionality
+Old_Plotter.cc
+Old_Plotter.h
+Plots
+PlotterOld
+PromptLocation
+RootPlayground.cc
