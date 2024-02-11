@@ -3,7 +3,10 @@
 #include <iostream>
 #include <string>
 
+#include "TFile.h"
 #include "TH1F.h"
+#include "TLeaf.h"
+#include "TTree.h"
 
 // Invariables
 
@@ -110,8 +113,8 @@ class BiPo
     BiPo();
     void ReadFileList();
     void SetUpHistograms();
+    void FillHistogram(std::shared_ptr<TTree> rootTree);
     void FillHistogramUnbiased(int signalSet);
-    void FillHistogram();
     void CalculateUnbiasing();
     void SubtractBackgrounds();
     void CalculateCovariances();
@@ -127,14 +130,18 @@ class BiPo
     std::array<std::array<std::array<TH1F, DirectionSize>, SignalSize>, DatasetSize> histogram;
 
     // File list
-    std::array<std::string, 4045> files;
+    std::array<std::string, 1756> files;
 
     // Values grabbed from ROOT tree
-    double Esmear;
-    double nCaptTime;
-    double xRx;
-    double promptPosition, delayedPosition;
-    int promptSegment, delayedSegment;
+    float alphaEnergy, alphaPSD;
+    float betaEnergy, betaPSD;
+    float alphaTime, betaTime, deltaTime;
+    float multCluster, multClusterIoni;
+    float promptPosition, delayedPosition;
+    int multCorrelated, multAccidental;  // Multiplicity of correlated and delayed events
+    int alphaSegment, betaSegment;
+    int alphaX, alphaY, alphaZ;
+    int betaX, betaY, betaZ;
     int dataSet;
     int direction;
     int lineNumber = 0, lineCounter = 0;
@@ -143,8 +150,7 @@ class BiPo
     // Invariables
     static constexpr int xBins = 301;  // Number of bins for our histograms
     static constexpr int zBins = 801;
-    static constexpr int totalDataLines = 4040;
-    static constexpr int totalSimLines = 500;
+    static constexpr int totalDataLines = 1756;
     static constexpr float histogramMax = 150.5;  // Maximum value of bin for histograms
     static constexpr float segmentWidth = 145.7;  // Distance between segment centers in mm
     static constexpr float atmosphericScaling = 1.000254;  // Atmosphering scaling coefficient
@@ -152,10 +158,29 @@ class BiPo
     static constexpr char* dataFileName
         = "/home/shay/Documents/PROSPECTData/BiPo_Data/%s/AD1_BiPo.root";
 
+    // Cut values
+    static constexpr float highAlphaEnergy = 1.0, lowAlphaEnergy = 0.72;  // Alpha energy cut
+    static constexpr float highAlphaPSD = 0.34, lowAlphaPSD = 0.17;  // Alpha PSD cut
+    static constexpr float highBetaEnergy = 4.0, lowBetaEnergy = 0;  // Beta energy cut
+    static constexpr float highBetaPSD = 0.22, lowBetaPSD = 0.05;  // Beta PSD cut
+    static constexpr float n2f = 1 / 12.0;  // Accidental scaling weight
+    static constexpr float tauBiPo = 0.1643 / 0.69314718056;  // BiPo lifetime
+    static constexpr float timeStart = 0.01, timeEnd = 3 * tauBiPo;  // Time window for BiPo
+    static constexpr float accTimeStart = 10 * tauBiPo;  // Accidental time window
+    static constexpr float accTimeEnd = accTimeStart + 12 * (timeEnd - timeStart);
+
     // Storing final counts
     std::array<std::array<float, DirectionSize>, DatasetSize> effectiveIBD;
     std::array<std::array<float, DirectionSize>, DatasetSize> totalIBD;
     std::array<std::array<float, DirectionSize>, DatasetSize> totalIBDError;
     std::array<std::array<float, DirectionSize>, DatasetSize> mean;
     std::array<std::array<float, DirectionSize>, DatasetSize> sigma;
+
+    // Inline functions
+    inline bool FiducialCut(int segment)
+    {
+        if (segment >= 140 || segment % 14 == 0 || (segment + 1) % 14 == 0 || segment == 25
+            || segment == 26)
+            return true;
+    }
 };
