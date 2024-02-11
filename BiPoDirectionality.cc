@@ -148,7 +148,7 @@ void BiPo::SetUpHistograms()
 {
     while (index < files.size())
     {
-        cout << "Reading file: " << lineCounter << "/" << totalDataLines << '\r';
+        cout << "Reading file: " << lineCounter + 1 << "/" << totalDataLines << '\r';
         cout.flush();
 
         // Combining names into root file name
@@ -189,12 +189,12 @@ void BiPo::SetUpHistograms()
                 continue;
 
             multCorrelated = rootTree->GetLeaf("mult_prompt")->GetValue(0);
+            multAccidental = rootTree->GetLeaf("mult_far")->GetValue(0);
 
             FillHistogram(rootTree);
         }
-        // Returns the next character in the input sequence, without extracting it: The character is
-        // left as the next character to be extracted from the stream
-        rootFile->Close();
+
+        // rootFile->Close();
 
         lineCounter++;
         index++;
@@ -244,19 +244,138 @@ void BiPo::FillHistogram(std::shared_ptr<TTree> rootTree)
         float dy = 145.7 * (alphaY - betaY);
         float dz = alphaZ - betaZ;
 
-        float distance = sqrt(dx * dx + dy * dy + dz * dz);
+        float displacement = sqrt(dx * dx + dy * dy + dz * dz);
 
-        if (distance > 550)
+        if (displacement > 550)
             continue;
 
         alphaTime = rootTree->GetLeaf("at")->GetValue(0);
         betaTime = rootTree->GetLeaf("pt")->GetValue(j);
 
         deltaTime = alphaTime - betaTime;
+
+        if (deltaTime > timeStart && deltaTime < timeEnd)
+        {
+            if (alphaSegment == betaSegment + 1 || alphaSegment == betaSegment - 1)
+                histogram[Data][Correlated][X].Fill(displacement);
+
+            if (alphaSegment == betaSegment + 14 || alphaSegment == betaSegment - 14)
+                histogram[Data][Correlated][Y].Fill(displacement);
+
+            if (alphaSegment == betaSegment)
+            {
+                histogram[Data][Correlated][X].Fill(0.0, n2f);
+                histogram[Data][Correlated][Y].Fill(0.0, n2f);
+                FillHistogramUnbiased(Correlated);
+            }
+        }
+    }
+
+    for (int j = 0; j < multAccidental; j++)
+    {
+        // Fiducial cut for beta
+        betaSegment = rootTree->GetLeaf("fseg")->GetValue(j);
+
+        if (FiducialCut(betaSegment))
+            continue;
+
+        // Grabbing beta values
+        betaEnergy = rootTree->GetLeaf("fEtot")->GetValue(j);
+        betaPSD = rootTree->GetLeaf("fPSD")->GetValue(0);
+        betaZ = rootTree->GetLeaf("fz")->GetValue(0);
+        multCluster = rootTree->GetLeaf("fmult_cluster")->GetValue(j);
+        multClusterIoni = rootTree->GetLeaf("fmult_cluster_ioni")->GetValue(j);
+
+        // Applying alpha cuts
+        if (abs(betaZ) > 1000)
+            continue;
+
+        if (betaEnergy < lowBetaEnergy || betaEnergy > highBetaEnergy)
+            continue;
+
+        if (betaPSD < lowBetaPSD || betaEnergy > highBetaPSD)
+            continue;
+
+        if (multCluster != multClusterIoni)
+            continue;
+
+        // Alpha location
+        alphaX = alphaSegment % 14;
+        alphaY = alphaSegment / 14;
+
+        // Beta location
+        betaX = betaSegment % 14;
+        betaY = betaSegment / 14;
+        betaZ = rootTree->GetLeaf("bz")->GetValue(j);
+
+        // Calculating prompt - delayed displacement
+        dx = 145.7 * (alphaX - betaX);
+        dy = 145.7 * (alphaY - betaY);
+        dz = alphaZ - betaZ;
+
+        displacement = sqrt(dx * dx + dy * dy + dz * dz);
+
+        if (displacement > 550)
+            continue;
+
+        alphaTime = rootTree->GetLeaf("at")->GetValue(0);
+        betaTime = rootTree->GetLeaf("ft")->GetValue(j);
+
+        deltaTime = alphaTime - betaTime;
+
+        if (deltaTime > timeStart && deltaTime < timeEnd)
+        {
+            if (alphaSegment == betaSegment + 1 || alphaSegment == betaSegment - 1)
+                histogram[Data][Accidental][X].Fill(segmentWidth, n2f);
+
+            if (alphaSegment == betaSegment + 14 || alphaSegment == betaSegment - 14)
+                histogram[Data][Accidental][Y].Fill(segmentWidth, n2f);
+
+            if (alphaSegment == betaSegment)
+            {
+                histogram[Data][Accidental][X].Fill(0.0, n2f);
+                histogram[Data][Accidental][Y].Fill(0.0, n2f);
+                FillHistogramUnbiased(Accidental);
+            }
+        }
     }
 }
 
-void BiPo::FillHistogramUnbiased(int signalSet) {}
+void BiPo::FillHistogramUnbiased(int signalSet)
+{
+    bool posDirectionX = false, negDirectionX = false;
+    bool posDirectionY = false, negDirectionY = false;
+
+    // Need to weight accidental datasets by deadtime correction factor
+    double weight = (signalSet == Accidental) ? n2f : 1;
+
+    // Check for live neighbors in different directions
+
+    posDirectionX = CheckNeighbor(alphaSegment, 'r');
+    negDirectionX = CheckNeighbor(alphaSegment, 'l');
+    posDirectionY = CheckNeighbor(alphaSegment, 'u');
+    negDirectionY = CheckNeighbor(alphaSegment, 'd');
+
+    // Filling x axis
+    if (posDirectionX && !negDirectionX)
+        histogram[DataUnbiased][signalSet][X].Fill(segmentWidth, weight);
+    else if (!posDirectionX && negDirectionX)
+        histogram[DataUnbiased][signalSet][X].Fill(-segmentWidth, weight);
+    else if (posDirectionX && negDirectionX)
+        histogram[DataUnbiased][signalSet][X].Fill(0.0, weight);
+
+    // Filling y axis
+    if (posDirectionY && !negDirectionY)
+        histogram[DataUnbiased][signalSet][Y].Fill(segmentWidth, weight);
+    else if (!posDirectionY && negDirectionY)
+        histogram[DataUnbiased][signalSet][Y].Fill(-segmentWidth, weight);
+    else if (posDirectionY && negDirectionY)
+        histogram[DataUnbiased][signalSet][Y].Fill(0.0, weight);
+
+    // Filling z axis
+    histogram[DataUnbiased][signalSet][Z].Fill(dz, weight);
+}
+
 void BiPo::CalculateUnbiasing() {}
 void BiPo::SubtractBackgrounds() {}
 void BiPo::CalculateCovariances() {}

@@ -130,14 +130,14 @@ class BiPo
     std::array<std::array<std::array<TH1F, DirectionSize>, SignalSize>, DatasetSize> histogram;
 
     // File list
-    std::array<std::string, 1756> files;
+    std::array<std::string, 1740> files;
 
     // Values grabbed from ROOT tree
     float alphaEnergy, alphaPSD;
     float betaEnergy, betaPSD;
     float alphaTime, betaTime, deltaTime;
     float multCluster, multClusterIoni;
-    float promptPosition, delayedPosition;
+    float dx, dy, dz, displacement;
     int multCorrelated, multAccidental;  // Multiplicity of correlated and delayed events
     int alphaSegment, betaSegment;
     int alphaX, alphaY, alphaZ;
@@ -150,13 +150,13 @@ class BiPo
     // Invariables
     static constexpr int xBins = 301;  // Number of bins for our histograms
     static constexpr int zBins = 801;
-    static constexpr int totalDataLines = 1756;
+    static constexpr int totalDataLines = 1740;
     static constexpr float histogramMax = 150.5;  // Maximum value of bin for histograms
     static constexpr float segmentWidth = 145.7;  // Distance between segment centers in mm
     static constexpr float atmosphericScaling = 1.000254;  // Atmosphering scaling coefficient
-    static constexpr char* dataPath = "2019XList_RxOff.txt";  // Reactor off dataset
-    static constexpr char* dataFileName
-        = "/home/shay/Documents/PROSPECTData/BiPo_Data/%s/AD1_BiPo.root";
+
+    char const* dataPath = "2019XList_RxOff.txt";  // Reactor off dataset
+    char const* dataFileName = "/home/shay/Documents/PROSPECTData/BiPo_Data/%s/AD1_BiPo.root";
 
     // Cut values
     static constexpr float highAlphaEnergy = 1.0, lowAlphaEnergy = 0.72;  // Alpha energy cut
@@ -176,11 +176,13 @@ class BiPo
     std::array<std::array<float, DirectionSize>, DatasetSize> mean;
     std::array<std::array<float, DirectionSize>, DatasetSize> sigma;
 
-    // Inline functions
+    // Utility functions
     inline bool FiducialCut(int segment)
     {
         if (segment >= 140 || segment % 14 == 0 || (segment + 1) % 14 == 0 || segment == 25
             || segment == 26)
             return true;
+        else
+            return false;
     }
 };
