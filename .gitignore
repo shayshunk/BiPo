@@ -15,6 +15,9 @@
 *.txt
 *.pdf
 
+# Don't ignore file list
+!2019XList_RxOff.txt
+
 # Ignore vscode
 .vscode
 .git
@@ -31,12 +34,3 @@ sj622@meitner.wlab.yale.edu
 *.pcm
 
 # Ignore old versions of the code
-AveragePrompt
-GeneralHeader.h
-Directionality
-Old_Plotter.cc
-Old_Plotter.h
-Plots
-PlotterOld
-PromptLocation
-RootPlayground.cc
