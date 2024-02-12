@@ -3,6 +3,7 @@
 #include <iostream>
 #include <string>
 
+#include "TF1.h"
 #include "TFile.h"
 #include "TH1F.h"
 #include "TLeaf.h"

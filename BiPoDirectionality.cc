@@ -376,8 +376,54 @@ void BiPo::FillHistogramUnbiased(int signalSet)
     histogram[DataUnbiased][signalSet][Z].Fill(dz, weight);
 }
 
+void BiPo::SubtractBackgrounds()
+{
+    for (int dataset = Data; dataset < DatasetSize; dataset++)
+    {
+        for (int direction = X; direction < DirectionSize; direction++)
+        {
+            string histogramName;
+            string data = DatasetToString(dataset);
+            histogramName = data + " Total Difference " + AxisToString(direction);
+
+            // Copying Correlated to start
+            histogram[dataset][TotalDifference][direction]
+                = TH1F(histogram[dataset][Correlated][direction]);
+
+            histogram[dataset][TotalDifference][direction].SetNameTitle(histogramName.c_str(),
+                                                                        data.c_str());
+
+            histogram[dataset][TotalDifference][direction].Add(
+                &histogram[dataset][Accidental][direction], -1. / 100);
+
+            if (dataset == DataUnbiased || direction == Z)
+                continue;
+
+            mean[dataset][direction] = histogram[dataset][TotalDifference][direction].GetMean();
+
+            float effEntries = histogram[dataset][TotalDifference][direction].GetEntries();
+            sigma[dataset][direction] = histogram[dataset][TotalDifference][direction].GetStdDev()
+                                        / sqrt(effEntries);
+        }
+
+        // Z is fit to a Guassian and only takes same segment inputs
+        // Possible thanks to 1mm resolution in Z
+        TF1 gaussian("Fit", "gaus", -400, 400);
+
+        histogram[dataset][TotalDifference][Z].Fit("Fit", "RQ");
+
+        float zMean = gaussian.GetParameter(1);
+        float zError = gaussian.GetParError(1);
+
+        mean[dataset][Z] = zMean;
+        sigma[dataset][Z] = zError;
+
+        // Deleting fit because we don't want the plot options stuck here
+        delete histogram[dataset][TotalDifference][Z].GetListOfFunctions()->FindObject("Fit");
+    }
+}
+
 void BiPo::CalculateUnbiasing() {}
-void BiPo::SubtractBackgrounds() {}
 void BiPo::CalculateCovariances() {}
 void BiPo::FillOutputFile() {}
 
@@ -387,6 +433,7 @@ int BiPoDirectionality()
 
     BiPoDirectionality.ReadFileList();
     BiPoDirectionality.SetUpHistograms();
+    BiPoDirectionality.SubtractBackgrounds();
 
     return 0;
 }
