@@ -14,7 +14,7 @@
 // Variables
 
 // Print flags
-bool DETECTOR_VERBOSITY = 0;
+bool DETECTOR_VERBOSITY = 1;
 
 // Utilities for parameters
 
@@ -114,7 +114,8 @@ class BiPo
     BiPo();
     void ReadFileList();
     void SetUpHistograms();
-    void FillHistogram(std::shared_ptr<TTree> rootTree);
+    void SetBranchAddresses();
+    void FillHistogram();
     void FillHistogramUnbiased(int signalSet);
     void CalculateUnbiasing();
     void SubtractBackgrounds();
@@ -130,19 +131,21 @@ class BiPo
     // Histogram to count IBDs
     std::array<std::array<std::array<TH1F, DirectionSize>, SignalSize>, DatasetSize> histogram;
 
+    // Root Tree pointer
+    std::shared_ptr<TTree> rootTree;
+
     // File list
     std::array<std::string, 1740> files;
 
     // Values grabbed from ROOT tree
-    float alphaEnergy, alphaPSD;
     float betaEnergy, betaPSD;
-    float alphaTime, betaTime, deltaTime;
-    float multCluster, multClusterIoni;
+    float betaTime, deltaTime;
     float dx, dy, dz, displacement;
-    int multCorrelated, multAccidental;  // Multiplicity of correlated and delayed events
-    int alphaSegment, betaSegment;
-    int alphaX, alphaY, alphaZ;
-    int betaX, betaY, betaZ;
+    float betaZ;
+    int betaSegment;
+    int alphaX, alphaY;
+    int betaX, betaY;
+    int multCluster, multClusterIoni;
     int dataSet;
     int direction;
     int lineNumber = 0, lineCounter = 0;
@@ -186,4 +189,51 @@ class BiPo
         else
             return false;
     }
+
+    // Setting up the leafs
+    // Declaration of leaf types
+    vector<int>* pseg;
+    vector<double>* pt;
+    vector<double>* pz;
+    vector<double>* pPSD;
+    vector<double>* pEtot;
+    vector<int>* pmult_clust;
+    vector<int>* pmult_clust_ioni;
+    vector<int>* fseg;
+    vector<double>* ft;
+    vector<double>* fz;
+    vector<double>* fPSD;
+    vector<double>* fEtot;
+    vector<int>* fmult_clust;
+    vector<int>* fmult_clust_ioni;
+    Int_t alphaSegment;
+    Double_t alphaEnergy;
+    Double_t alphaTime;
+    Double_t alphaZ;
+    Double_t alphaPSD;
+    Int_t multCorrelated;
+    Int_t multAccidental;
+
+    // List of branches
+    TBranch* b_pseg;
+    TBranch* b_pt;
+    TBranch* b_pz;
+    TBranch* b_pPSD;
+    TBranch* b_pEtot;
+    TBranch* b_pmult_clust;
+    TBranch* b_pmult_clust_ioni;
+    TBranch* b_fseg;
+    TBranch* b_ft;
+    TBranch* b_fz;
+    TBranch* b_fPSD;
+    TBranch* b_fEtot;
+    TBranch* b_fmult_clust;
+    TBranch* b_fmult_clust_ioni;
+    TBranch* b_aseg;
+    TBranch* b_aE;
+    TBranch* b_at;
+    TBranch* b_az;
+    TBranch* b_aPSD;
+    TBranch* b_mult_prompt;
+    TBranch* b_mult_far;
 };

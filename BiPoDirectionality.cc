@@ -158,8 +158,10 @@ void BiPo::SetUpHistograms()
         auto rootFile = std::make_unique<TFile>(rootFilename);
 
         // Grab rootTree and cast to unique pointer
-        auto rootTree
+        rootTree
             = std::shared_ptr<TTree>(static_cast<TTree*>(rootFile->Get("BiPoTreePlugin/BiPo")));
+
+        SetBranchAddresses();
 
         long nEntries = rootTree->GetEntries();
 
@@ -168,15 +170,8 @@ void BiPo::SetUpHistograms()
             rootTree->GetEntry(i);
 
             // Doing our own fiducial cut
-            alphaSegment = rootTree->GetLeaf("aseg")->GetValue(0);
-
             if (FiducialCut(alphaSegment))
                 continue;
-
-            // Grabbing alpha values
-            alphaEnergy = rootTree->GetLeaf("aE")->GetValue(0);
-            alphaPSD = rootTree->GetLeaf("aPSD")->GetValue(0);
-            alphaZ = rootTree->GetLeaf("az")->GetValue(0);
 
             // Applying alpha cuts
             if (abs(alphaZ) > 1000)
@@ -185,13 +180,10 @@ void BiPo::SetUpHistograms()
             if (alphaEnergy < lowAlphaEnergy || alphaEnergy > highAlphaEnergy)
                 continue;
 
-            if (alphaPSD < lowAlphaPSD || alphaEnergy > highAlphaPSD)
+            if (alphaPSD < lowAlphaPSD || alphaPSD > highAlphaPSD)
                 continue;
 
-            multCorrelated = rootTree->GetLeaf("mult_prompt")->GetValue(0);
-            multAccidental = rootTree->GetLeaf("mult_far")->GetValue(0);
-
-            FillHistogram(rootTree);
+            FillHistogram();
         }
 
         // rootFile->Close();
@@ -200,22 +192,80 @@ void BiPo::SetUpHistograms()
         index++;
     }
 }
-void BiPo::FillHistogram(std::shared_ptr<TTree> rootTree)
+
+void BiPo::SetBranchAddresses()
+{
+    // Set object pointer
+    pseg = 0;
+    pt = 0;
+    pz = 0;
+    pPSD = 0;
+    pEtot = 0;
+    pmult_clust = 0;
+    pmult_clust_ioni = 0;
+    fseg = 0;
+    ft = 0;
+    fz = 0;
+    fPSD = 0;
+    fEtot = 0;
+    fmult_clust = 0;
+    fmult_clust_ioni = 0;
+
+    // Set branch addresses and branch pointers
+    if (!rootTree)
+        return;
+
+    // Prompt Window
+    rootTree->SetBranchAddress("pseg", &pseg, &b_pseg);  // beta segment number
+    rootTree->SetBranchAddress("pt", &pt, &b_pt);  // beta timing in us
+    rootTree->SetBranchAddress("pz", &pz, &b_pz);  // beta position in Z position, given in mm
+    rootTree->SetBranchAddress("pPSD", &pPSD, &b_pPSD);  // beta PSD
+    rootTree->SetBranchAddress("pEtot", &pEtot, &b_pEtot);  // beta total energy in MeV
+    rootTree->SetBranchAddress("pmult_clust", &pmult_clust, &b_pmult_clust);  // prompt cluster
+                                                                              // multiplicity
+    rootTree->SetBranchAddress(
+        "pmult_clust_ioni", &pmult_clust_ioni, &b_pmult_clust_ioni);  // prompt cluster multiplicity
+                                                                      // ionization?
+    // Far Window
+    rootTree->SetBranchAddress("fseg", &fseg, &b_fseg);  // beta segment number
+    rootTree->SetBranchAddress("ft", &ft, &b_ft);  // beta timing in us
+    rootTree->SetBranchAddress("fz", &fz, &b_fz);  // beta position in Z position, given in mm
+    rootTree->SetBranchAddress("fPSD", &fPSD, &b_fPSD);  // beta PSD
+    rootTree->SetBranchAddress("fEtot", &fEtot, &b_fEtot);  // beta total energy in MeV
+    rootTree->SetBranchAddress("fmult_clust", &fmult_clust, &b_fmult_clust);  // prompt cluster
+                                                                              // multiplicity
+    rootTree->SetBranchAddress(
+        "fmult_clust_ioni", &fmult_clust_ioni, &b_fmult_clust_ioni);  // prompt cluster multiplicity
+                                                                      // ionization?
+    // Alpha
+    rootTree->SetBranchAddress("aseg", &alphaSegment, &b_aseg);  // alpha segment number
+    rootTree->SetBranchAddress("aE", &alphaEnergy, &b_aE);  // alpha energy in MeV
+    rootTree->SetBranchAddress("at", &alphaTime, &b_at);  // alpha timing in us
+    rootTree->SetBranchAddress("az", &alphaZ, &b_az);
+    rootTree->SetBranchAddress("aPSD", &alphaPSD, &b_aPSD);  // alpha PSD
+    rootTree->SetBranchAddress("mult_prompt", &multCorrelated, &b_mult_prompt);  // prompt
+                                                                                 // multiplicity for
+                                                                                 // correlated
+    rootTree->SetBranchAddress("mult_far", &multAccidental, &b_mult_far);  // prompt multiplicity
+                                                                           // for accidentals
+}
+
+void BiPo::FillHistogram()
 {
     for (int j = 0; j < multCorrelated; j++)
     {
         // Fiducial cut for beta
-        betaSegment = rootTree->GetLeaf("pseg")->GetValue(j);
+        betaSegment = pseg->at(j);
 
         if (FiducialCut(betaSegment))
             continue;
 
         // Grabbing beta values
-        betaEnergy = rootTree->GetLeaf("pEtot")->GetValue(j);
-        betaPSD = rootTree->GetLeaf("pPSD")->GetValue(0);
-        betaZ = rootTree->GetLeaf("pz")->GetValue(0);
-        multCluster = rootTree->GetLeaf("pmult_cluster")->GetValue(j);
-        multClusterIoni = rootTree->GetLeaf("pmult_cluster_ioni")->GetValue(j);
+        betaEnergy = pEtot->at(j);
+        betaPSD = pPSD->at(j);
+        betaZ = pz->at(j);
+        multCluster = pmult_clust->at(j);
+        multClusterIoni = pmult_clust_ioni->at(j);
 
         // Applying alpha cuts
         if (abs(betaZ) > 1000)
@@ -224,7 +274,7 @@ void BiPo::FillHistogram(std::shared_ptr<TTree> rootTree)
         if (betaEnergy < lowBetaEnergy || betaEnergy > highBetaEnergy)
             continue;
 
-        if (betaPSD < lowBetaPSD || betaEnergy > highBetaPSD)
+        if (betaPSD < lowBetaPSD || betaPSD > highBetaPSD)
             continue;
 
         if (multCluster != multClusterIoni)
@@ -237,76 +287,7 @@ void BiPo::FillHistogram(std::shared_ptr<TTree> rootTree)
         // Beta location
         betaX = betaSegment % 14;
         betaY = betaSegment / 14;
-        betaZ = rootTree->GetLeaf("bz")->GetValue(j);
-
-        // Calculating prompt - delayed displacement
-        float dx = 145.7 * (alphaX - betaX);
-        float dy = 145.7 * (alphaY - betaY);
-        float dz = alphaZ - betaZ;
-
-        float displacement = sqrt(dx * dx + dy * dy + dz * dz);
-
-        if (displacement > 550)
-            continue;
-
-        alphaTime = rootTree->GetLeaf("at")->GetValue(0);
-        betaTime = rootTree->GetLeaf("pt")->GetValue(j);
-
-        deltaTime = alphaTime - betaTime;
-
-        if (deltaTime > timeStart && deltaTime < timeEnd)
-        {
-            if (alphaSegment == betaSegment + 1 || alphaSegment == betaSegment - 1)
-                histogram[Data][Correlated][X].Fill(displacement);
-
-            if (alphaSegment == betaSegment + 14 || alphaSegment == betaSegment - 14)
-                histogram[Data][Correlated][Y].Fill(displacement);
-
-            if (alphaSegment == betaSegment)
-            {
-                histogram[Data][Correlated][X].Fill(0.0, n2f);
-                histogram[Data][Correlated][Y].Fill(0.0, n2f);
-                FillHistogramUnbiased(Correlated);
-            }
-        }
-    }
-
-    for (int j = 0; j < multAccidental; j++)
-    {
-        // Fiducial cut for beta
-        betaSegment = rootTree->GetLeaf("fseg")->GetValue(j);
-
-        if (FiducialCut(betaSegment))
-            continue;
-
-        // Grabbing beta values
-        betaEnergy = rootTree->GetLeaf("fEtot")->GetValue(j);
-        betaPSD = rootTree->GetLeaf("fPSD")->GetValue(0);
-        betaZ = rootTree->GetLeaf("fz")->GetValue(0);
-        multCluster = rootTree->GetLeaf("fmult_cluster")->GetValue(j);
-        multClusterIoni = rootTree->GetLeaf("fmult_cluster_ioni")->GetValue(j);
-
-        // Applying alpha cuts
-        if (abs(betaZ) > 1000)
-            continue;
-
-        if (betaEnergy < lowBetaEnergy || betaEnergy > highBetaEnergy)
-            continue;
-
-        if (betaPSD < lowBetaPSD || betaEnergy > highBetaPSD)
-            continue;
-
-        if (multCluster != multClusterIoni)
-            continue;
-
-        // Alpha location
-        alphaX = alphaSegment % 14;
-        alphaY = alphaSegment / 14;
-
-        // Beta location
-        betaX = betaSegment % 14;
-        betaY = betaSegment / 14;
-        betaZ = rootTree->GetLeaf("bz")->GetValue(j);
+        betaZ = pz->at(j);
 
         // Calculating prompt - delayed displacement
         dx = 145.7 * (alphaX - betaX);
@@ -318,8 +299,76 @@ void BiPo::FillHistogram(std::shared_ptr<TTree> rootTree)
         if (displacement > 550)
             continue;
 
-        alphaTime = rootTree->GetLeaf("at")->GetValue(0);
-        betaTime = rootTree->GetLeaf("ft")->GetValue(j);
+        betaTime = pt->at(j);
+
+        deltaTime = alphaTime - betaTime;
+
+        if (deltaTime > timeStart && deltaTime < timeEnd)
+        {
+            if (alphaSegment == betaSegment + 1 || alphaSegment == betaSegment - 1)
+                histogram[Data][Correlated][X].Fill(dx);
+
+            if (alphaSegment == betaSegment + 14 || alphaSegment == betaSegment - 14)
+                histogram[Data][Correlated][Y].Fill(dy);
+
+            if (alphaSegment == betaSegment)
+            {
+                histogram[Data][Correlated][X].Fill(0.0);
+                histogram[Data][Correlated][Y].Fill(0.0);
+                histogram[Data][Correlated][Z].Fill(dz);
+                FillHistogramUnbiased(Correlated);
+            }
+        }
+    }
+
+    for (int j = 0; j < multAccidental; j++)
+    {
+        // Fiducial cut for beta
+        betaSegment = fseg->at(j);
+
+        if (FiducialCut(betaSegment))
+            continue;
+
+        // Grabbing beta values
+        betaEnergy = fEtot->at(j);
+        betaPSD = fPSD->at(j);
+        betaZ = fz->at(j);
+        multCluster = fmult_clust->at(j);
+        multClusterIoni = fmult_clust_ioni->at(j);
+
+        // Applying alpha cuts
+        if (abs(betaZ) > 1000)
+            continue;
+
+        if (betaEnergy < lowBetaEnergy || betaEnergy > highBetaEnergy)
+            continue;
+
+        if (betaPSD < lowBetaPSD || betaPSD > highBetaPSD)
+            continue;
+
+        if (multCluster != multClusterIoni)
+            continue;
+
+        // Alpha location
+        alphaX = alphaSegment % 14;
+        alphaY = alphaSegment / 14;
+
+        // Beta location
+        betaX = betaSegment % 14;
+        betaY = betaSegment / 14;
+        betaZ = fz->at(j);
+
+        // Calculating prompt - delayed displacement
+        dx = 145.7 * (alphaX - betaX);
+        dy = 145.7 * (alphaY - betaY);
+        dz = alphaZ - betaZ;
+
+        displacement = sqrt(dx * dx + dy * dy + dz * dz);
+
+        if (displacement > 550)
+            continue;
+
+        betaTime = ft->at(j);
 
         deltaTime = alphaTime - betaTime;
 
@@ -335,6 +384,7 @@ void BiPo::FillHistogram(std::shared_ptr<TTree> rootTree)
             {
                 histogram[Data][Accidental][X].Fill(0.0, n2f);
                 histogram[Data][Accidental][Y].Fill(0.0, n2f);
+                histogram[Data][Accidental][Z].Fill(dz, n2f);
                 FillHistogramUnbiased(Accidental);
             }
         }
@@ -418,6 +468,8 @@ void BiPo::SubtractBackgrounds()
         mean[dataset][Z] = zMean;
         sigma[dataset][Z] = zError;
 
+        cout << "Did the fit.\n" << zMean << '\n';
+
         // Deleting fit because we don't want the plot options stuck here
         delete histogram[dataset][TotalDifference][Z].GetListOfFunctions()->FindObject("Fit");
     }
@@ -429,6 +481,8 @@ void BiPo::FillOutputFile() {}
 
 int BiPoDirectionality()
 {
+    FillDetectorConfig();
+
     BiPo BiPoDirectionality;
 
     BiPoDirectionality.ReadFileList();
