@@ -475,8 +475,87 @@ void BiPo::SubtractBackgrounds()
     }
 }
 
-void BiPo::CalculateUnbiasing() {}
-void BiPo::CalculateCovariances() {}
+void BiPo::CalculateUnbiasing()
+{
+    // Defining variables used in calculation. Check the error propagation technote for details on
+    // the method
+    double rPlus = 0, rMinus = 0;
+    double p = 0, pError = 0;
+    double nPlus = 0, nPlusPlus = 0, nMinus = 0, nMinusMinus = 0, nPlusMinus = 0;
+    double nPlusError = 0, nPlusPlusError = 0, nMinusError = 0, nMinusMinusError = 0,
+           nPlusMinusError = 0;
+
+    for (int direction = X; direction < Z; direction++)
+    {
+        // Grabbing data from filled bins, rest should be empty
+        nPlus = histogram[Data][TotalDifference][direction].GetBinContent(297);
+        nPlusPlus = histogram[DataUnbiased][TotalDifference][direction].GetBinContent(297);
+        nMinus = histogram[Data][TotalDifference][direction].GetBinContent(5);
+        nMinusMinus = histogram[DataUnbiased][TotalDifference][direction].GetBinContent(5);
+        nPlusMinus = histogram[DataUnbiased][TotalDifference][direction].GetBinContent(151);
+
+        cout << "N plus: " << nPlus << '\n';
+        cout << "N plus plus: " << nPlusPlus << '\n';
+        cout << "N minus: " << nMinus << '\n';
+        cout << "N minus minus: " << nMinusMinus << '\n';
+        cout << "N plus minus: " << nPlusMinus << '\n';
+
+        nPlusError = histogram[Data][TotalDifference][direction].GetBinError(297);
+        nPlusPlusError = histogram[DataUnbiased][TotalDifference][direction].GetBinError(297);
+        nMinusError = histogram[Data][TotalDifference][direction].GetBinError(5);
+        nMinusMinusError = histogram[DataUnbiased][TotalDifference][direction].GetBinError(5);
+        nPlusMinusError = histogram[DataUnbiased][TotalDifference][direction].GetBinError(151);
+
+        rPlus = nPlus / (nPlusPlus + nPlusMinus);
+        rMinus = nMinus / (nMinusMinus + nPlusMinus);
+
+        p = segmentWidth * (rPlus - rMinus) / (rPlus + rMinus + 1);
+
+        pError = segmentWidth
+                 * pow(1
+                           / ((nMinus * (nPlusMinus + nPlusPlus)
+                               + (nMinusMinus + nPlusMinus) * (nPlus + nPlusMinus + nPlusPlus))),
+                       2)
+                 * sqrt(pow((nMinusMinus + nPlusMinus) * (nPlusMinus + nPlusPlus), 2)
+                            * (pow(nPlusError * (2 * nMinus + nMinusMinus + nPlusMinus), 2)
+                               + pow(nMinusError * (2 * nPlus + nPlusPlus + nPlusMinus), 2))
+                        + pow((nPlus * (nPlusMinus + nMinusMinus)
+                               * (2 * nMinus + nMinusMinus + nPlusMinus) * nPlusPlusError),
+                              2)
+                        + pow((nPlusMinusError
+                               * (nPlus * pow((nMinusMinus + nPlusMinus), 2)
+                                  + nMinus
+                                        * (2 * nMinusMinus * nPlus - 2 * nPlus * nPlusPlus
+                                           - pow((nPlusMinus + nPlusPlus), 2)))),
+                              2)
+                        + pow((nMinus * (nPlusMinus + nPlusPlus)
+                               * (2 * nPlus + nPlusMinus + nPlusPlus) * nMinusMinusError),
+                              2));
+
+        mean[DataUnbiased][direction] = p;
+        sigma[DataUnbiased][direction] = pError;
+    }
+
+    mean[DataUnbiased][Z] = mean[Data][Z];
+    sigma[DataUnbiased][Z] = sigma[Data][Z];
+
+    cout << boldOn << cyanOn << "Calculated Means.\n" << resetFormats;
+    cout << "--------------------------------------------\n";
+
+    // Printing out values
+    for (int dataset = Data; dataset < DatasetSize; dataset++)
+    {
+        cout << "Mean and sigma values for: " << boldOn << DatasetToString(dataset) << resetFormats
+             << '\n';
+        for (int direction = X; direction < DirectionSize; direction++)
+        {
+            cout << boldOn << "p" << AxisToString(direction) << ": " << resetFormats
+                 << mean[dataset][direction] << " ± " << sigma[dataset][direction] << '\n';
+        }
+        cout << "--------------------------------------------\n";
+    }
+}
+
 void BiPo::FillOutputFile() {}
 
 int BiPoDirectionality()
@@ -488,6 +567,8 @@ int BiPoDirectionality()
     BiPoDirectionality.ReadFileList();
     BiPoDirectionality.SetUpHistograms();
     BiPoDirectionality.SubtractBackgrounds();
+    BiPoDirectionality.CalculateUnbiasing();
+    BiPoDirectionality.FillOutputFile();
 
     return 0;
 }

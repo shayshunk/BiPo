@@ -119,7 +119,6 @@ class BiPo
     void FillHistogramUnbiased(int signalSet);
     void CalculateUnbiasing();
     void SubtractBackgrounds();
-    void CalculateCovariances();
     void FillOutputFile();
 
     // Inline functions
@@ -171,9 +170,6 @@ class BiPo
     static constexpr float accTimeEnd = accTimeStart + 12 * (timeEnd - timeStart);
 
     // Storing final counts
-    std::array<std::array<float, DirectionSize>, DatasetSize> effectiveIBD;
-    std::array<std::array<float, DirectionSize>, DatasetSize> totalIBD;
-    std::array<std::array<float, DirectionSize>, DatasetSize> totalIBDError;
     std::array<std::array<float, DirectionSize>, DatasetSize> mean;
     std::array<std::array<float, DirectionSize>, DatasetSize> sigma;
 
