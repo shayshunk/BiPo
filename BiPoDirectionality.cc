@@ -158,10 +158,10 @@ void BiPo::SetUpHistograms()
         auto rootFile = std::make_unique<TFile>(rootFilename);
 
         // Grab rootTree and cast to unique pointer
-        rootTree
+        auto rootTree
             = std::shared_ptr<TTree>(static_cast<TTree*>(rootFile->Get("BiPoTreePlugin/BiPo")));
 
-        SetBranchAddresses();
+        SetBranchAddresses(rootTree);
 
         long nEntries = rootTree->GetEntries();
 
@@ -193,7 +193,7 @@ void BiPo::SetUpHistograms()
     }
 }
 
-void BiPo::SetBranchAddresses()
+void BiPo::SetBranchAddresses(std::shared_ptr<TTree> rootTree)
 {
     // Set object pointer
     pseg = 0;

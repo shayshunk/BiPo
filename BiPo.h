@@ -114,7 +114,7 @@ class BiPo
     BiPo();
     void ReadFileList();
     void SetUpHistograms();
-    void SetBranchAddresses();
+    void SetBranchAddresses(std::shared_ptr<TTree> rootTree);
     void FillHistogram();
     void FillHistogramUnbiased(int signalSet);
     void CalculateUnbiasing();
@@ -130,9 +130,6 @@ class BiPo
   private:
     // Histogram to count IBDs
     std::array<std::array<std::array<TH1F, DirectionSize>, SignalSize>, DatasetSize> histogram;
-
-    // Root Tree pointer
-    std::shared_ptr<TTree> rootTree;
 
     // File list
     std::array<std::string, 1740> files;
