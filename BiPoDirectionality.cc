@@ -148,6 +148,8 @@ void BiPo::SetUpHistograms()
 {
     while (index < files.size())
     {
+        fillCount = 0;
+
         cout << "Reading file: " << lineCounter + 1 << "/" << totalDataLines << '\r';
         cout.flush();
 
@@ -164,6 +166,8 @@ void BiPo::SetUpHistograms()
         SetBranchAddresses(rootTree);
 
         long nEntries = rootTree->GetEntries();
+
+        cout << "Entries: " << nEntries << '\n';
 
         for (long i = 0; i < nEntries; i++)
         {
@@ -185,6 +189,8 @@ void BiPo::SetUpHistograms()
 
             FillHistogram();
         }
+
+        cout << "Fill called: " << fillCount << " times.\n";
 
         // rootFile->Close();
 
@@ -305,8 +311,11 @@ void BiPo::FillHistogram()
 
         if (deltaTime > timeStart && deltaTime < timeEnd)
         {
+            fillCount++;
             if (alphaSegment == betaSegment + 1 || alphaSegment == betaSegment - 1)
+            {
                 histogram[Data][Correlated][X].Fill(dx);
+            }
 
             if (alphaSegment == betaSegment + 14 || alphaSegment == betaSegment - 14)
                 histogram[Data][Correlated][Y].Fill(dy);
@@ -365,20 +374,23 @@ void BiPo::FillHistogram()
 
         displacement = sqrt(dx * dx + dy * dy + dz * dz);
 
+        if (abs(dz) > 250)
+            continue;
+
         if (displacement > 550)
             continue;
 
         betaTime = ft->at(j);
 
-        deltaTime = alphaTime - betaTime;
+        deltaTime = betaTime - alphaTime;
 
-        if (deltaTime > timeStart && deltaTime < timeEnd)
+        if (deltaTime > accTimeStart && deltaTime < accTimeEnd)
         {
             if (alphaSegment == betaSegment + 1 || alphaSegment == betaSegment - 1)
-                histogram[Data][Accidental][X].Fill(segmentWidth, n2f);
+                histogram[Data][Accidental][X].Fill(dx, n2f);
 
             if (alphaSegment == betaSegment + 14 || alphaSegment == betaSegment - 14)
-                histogram[Data][Accidental][Y].Fill(segmentWidth, n2f);
+                histogram[Data][Accidental][Y].Fill(dy, n2f);
 
             if (alphaSegment == betaSegment)
             {
@@ -444,7 +456,7 @@ void BiPo::SubtractBackgrounds()
                                                                         data.c_str());
 
             histogram[dataset][TotalDifference][direction].Add(
-                &histogram[dataset][Accidental][direction], -1. / 100);
+                &histogram[dataset][Accidental][direction]);
 
             if (dataset == DataUnbiased || direction == Z)
                 continue;
@@ -454,6 +466,12 @@ void BiPo::SubtractBackgrounds()
             float effEntries = histogram[dataset][TotalDifference][direction].GetEntries();
             sigma[dataset][direction] = histogram[dataset][TotalDifference][direction].GetStdDev()
                                         / sqrt(effEntries);
+
+            cout << "Total entries for Correlated " << AxisToString(direction) << " : "
+                 << histogram[Data][Correlated][direction].GetEntries() << '\n';
+
+            cout << "Total entries for Accidental " << AxisToString(direction) << " : "
+                 << histogram[Data][Accidental][direction].GetEntries() << '\n';
         }
 
         // Z is fit to a Guassian and only takes same segment inputs
@@ -488,12 +506,26 @@ void BiPo::CalculateUnbiasing()
     for (int direction = X; direction < Z; direction++)
     {
         // Grabbing data from filled bins, rest should be empty
-        nPlus = histogram[Data][TotalDifference][direction].GetBinContent(297);
-        nPlusPlus = histogram[DataUnbiased][TotalDifference][direction].GetBinContent(297);
-        nMinus = histogram[Data][TotalDifference][direction].GetBinContent(5);
-        nMinusMinus = histogram[DataUnbiased][TotalDifference][direction].GetBinContent(5);
-        nPlusMinus = histogram[DataUnbiased][TotalDifference][direction].GetBinContent(151);
+        nPlus = histogram[Data][Correlated][direction].GetBinContent(297);
+        nPlusPlus = histogram[DataUnbiased][Correlated][direction].GetBinContent(297);
+        nMinus = histogram[Data][Correlated][direction].GetBinContent(5);
+        nMinusMinus = histogram[DataUnbiased][Correlated][direction].GetBinContent(5);
+        nPlusMinus = histogram[DataUnbiased][Correlated][direction].GetBinContent(151);
 
+        cout << "Correlated:\n";
+        cout << "N plus: " << nPlus << '\n';
+        cout << "N plus plus: " << nPlusPlus << '\n';
+        cout << "N minus: " << nMinus << '\n';
+        cout << "N minus minus: " << nMinusMinus << '\n';
+        cout << "N plus minus: " << nPlusMinus << '\n';
+
+        nPlus = histogram[Data][Accidental][direction].GetBinContent(297);
+        nPlusPlus = histogram[DataUnbiased][Accidental][direction].GetBinContent(297);
+        nMinus = histogram[Data][Accidental][direction].GetBinContent(5);
+        nMinusMinus = histogram[DataUnbiased][Accidental][direction].GetBinContent(5);
+        nPlusMinus = histogram[DataUnbiased][Accidental][direction].GetBinContent(151);
+
+        cout << "Accidental:\n";
         cout << "N plus: " << nPlus << '\n';
         cout << "N plus plus: " << nPlusPlus << '\n';
         cout << "N minus: " << nMinus << '\n';

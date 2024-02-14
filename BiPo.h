@@ -134,8 +134,8 @@ class BiPo
     std::array<std::string, 1740> files;
 
     // Values grabbed from ROOT tree
+    double betaTime, deltaTime;
     float betaEnergy, betaPSD;
-    float betaTime, deltaTime;
     float dx, dy, dz, displacement;
     float betaZ;
     int betaSegment;
@@ -145,6 +145,7 @@ class BiPo
     int dataSet;
     int direction;
     int lineNumber = 0, lineCounter = 0;
+    int fillCount = 0;
     std::size_t index = 0;
 
     // Invariables
@@ -164,10 +165,10 @@ class BiPo
     static constexpr float highBetaEnergy = 4.0, lowBetaEnergy = 0;  // Beta energy cut
     static constexpr float highBetaPSD = 0.22, lowBetaPSD = 0.05;  // Beta PSD cut
     static constexpr float n2f = 1 / 12.0;  // Accidental scaling weight
-    static constexpr float tauBiPo = 0.1643 / 0.69314718056;  // BiPo lifetime
-    static constexpr float timeStart = 0.01, timeEnd = 3 * tauBiPo;  // Time window for BiPo
-    static constexpr float accTimeStart = 10 * tauBiPo;  // Accidental time window
-    static constexpr float accTimeEnd = accTimeStart + 12 * (timeEnd - timeStart);
+    float tauBiPo = 0.1643 / log(2);  // BiPo lifetime
+    float timeStart = 0.01, timeEnd = 3 * tauBiPo;  // Time window for BiPo
+    float accTimeStart = 10 * tauBiPo;  // Accidental time window
+    float accTimeEnd = accTimeStart + 12 * (timeEnd - timeStart);
 
     // Storing final counts
     std::array<std::array<float, DirectionSize>, DatasetSize> mean;
