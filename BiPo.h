@@ -5,7 +5,7 @@
 
 #include "TF1.h"
 #include "TFile.h"
-#include "TH1F.h"
+#include "TH1D.h"
 #include "TLeaf.h"
 #include "TTree.h"
 
@@ -128,7 +128,7 @@ class BiPo
 
   private:
     // Histogram to count IBDs
-    std::array<std::array<std::array<TH1F, DirectionSize>, SignalSize>, DatasetSize> histogram;
+    std::array<std::array<std::array<TH1D, DirectionSize>, SignalSize>, DatasetSize> histogram;
 
     // File list
     std::array<std::string, 1740> files;
