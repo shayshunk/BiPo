@@ -460,6 +460,18 @@ void BiPo::SubtractBackgrounds()
             sigma[dataset][direction] = histogram[dataset][TotalDifference][direction].GetStdDev()
                                         / sqrt(effEntries);
 
+            cout << "Total entries for Correlated N+ " << AxisToString(direction) << " : "
+                 << histogram[Data][Correlated][direction].GetBinContent(297) << '\n';
+
+            cout << "Total entries for Correlated N- " << AxisToString(direction) << " : "
+                 << histogram[Data][Correlated][direction].GetBinContent(5) << '\n';
+
+            cout << "Total entries for Correlated N0 " << AxisToString(direction) << " : "
+                 << histogram[Data][Correlated][direction].GetBinContent(151) << '\n';
+
+            cout << "Total entries for Correlated " << AxisToString(direction) << " : "
+                 << histogram[Data][Correlated][direction].GetEntries() << '\n';
+
             cout << "Total entries for Accidental N+ " << AxisToString(direction) << " : "
                  << histogram[Data][Accidental][direction].GetBinContent(297) << '\n';
 
@@ -567,7 +579,31 @@ void BiPo::CalculateUnbiasing()
     }
 }
 
-void BiPo::FillOutputFile() {}
+void BiPo::FillOutputFile()
+{
+    // Set up our output file
+    TFile outputFile("BiPo.root", "recreate");
+
+    outputFile.cd();
+
+    for (int dataset = Data; dataset < DatasetSize; dataset++)
+    {
+        for (int signalSet = Correlated; signalSet < SignalSize; signalSet++)
+        {
+            for (int direction = X; direction < DirectionSize; direction++)
+            {
+                histogram[dataset][signalSet][direction].Write();
+            }
+        }
+    }
+
+    cout << boldOn << cyanOn << "Filled output file: " << resetFormats << blueOn << boldOn
+         << "BiPo.root!\n"
+         << resetFormats;
+    cout << "--------------------------------------------\n";
+
+    outputFile.Close();
+}
 
 int BiPoDirectionality()
 {
