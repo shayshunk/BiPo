@@ -101,19 +101,25 @@ BiPo::BiPo()
                 string histogramName = data + " " + signal + " " + axis;
 
                 int bins;
+                float histogramMax;
+
                 switch (direction)
                 {
                     case X:
                         bins = xBins;
+                        histogramMax = xHistogramMax;
                         break;
                     case Y:
                         bins = xBins;
+                        histogramMax = xHistogramMax;
                         break;
                     case Z:
                         bins = zBins;
+                        histogramMax = zHistogramMax;
                         break;
                     default:
                         bins = xBins;
+                        histogramMax = xHistogramMax;
                 }
 
                 histogram[dataset][signalSet][direction]
@@ -461,28 +467,28 @@ void BiPo::SubtractBackgrounds()
                                         / sqrt(effEntries);
 
             cout << "Total entries for Correlated N+ " << AxisToString(direction) << " : "
-                 << histogram[Data][Correlated][direction].GetBinContent(297) << '\n';
+                 << histogram[DataUnbiased][Correlated][direction].GetBinContent(297) << '\n';
 
             cout << "Total entries for Correlated N- " << AxisToString(direction) << " : "
-                 << histogram[Data][Correlated][direction].GetBinContent(5) << '\n';
+                 << histogram[DataUnbiased][Correlated][direction].GetBinContent(5) << '\n';
 
             cout << "Total entries for Correlated N0 " << AxisToString(direction) << " : "
-                 << histogram[Data][Correlated][direction].GetBinContent(151) << '\n';
+                 << histogram[DataUnbiased][Correlated][direction].GetBinContent(151) << '\n';
 
             cout << "Total entries for Correlated " << AxisToString(direction) << " : "
-                 << histogram[Data][Correlated][direction].GetEntries() << '\n';
+                 << histogram[DataUnbiased][Correlated][direction].GetEntries() << '\n';
 
             cout << "Total entries for Accidental N+ " << AxisToString(direction) << " : "
-                 << histogram[Data][Accidental][direction].GetBinContent(297) << '\n';
+                 << histogram[DataUnbiased][Accidental][direction].GetBinContent(297) << '\n';
 
             cout << "Total entries for Accidental N- " << AxisToString(direction) << " : "
-                 << histogram[Data][Accidental][direction].GetBinContent(5) << '\n';
+                 << histogram[DataUnbiased][Accidental][direction].GetBinContent(5) << '\n';
 
             cout << "Total entries for Accidental N0 " << AxisToString(direction) << " : "
-                 << histogram[Data][Accidental][direction].GetBinContent(151) << '\n';
+                 << histogram[DataUnbiased][Accidental][direction].GetBinContent(151) << '\n';
 
             cout << "Total entries for Accidental " << AxisToString(direction) << " : "
-                 << histogram[Data][Accidental][direction].GetEntries() << '\n';
+                 << histogram[DataUnbiased][Accidental][direction].GetEntries() << '\n';
         }
 
         // Z is fit to a Guassian and only takes same segment inputs
