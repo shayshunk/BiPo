@@ -19,8 +19,8 @@
 !2019XList_RxOff.txt
 
 # Ignore vscode
-.vscode
-.git
+.vscode/
+.git/
 
 # Ignore meitner
 meitner
@@ -34,3 +34,4 @@ sj622@meitner.wlab.yale.edu
 *.pcm
 
 # Ignore old versions of the code
+BiPo

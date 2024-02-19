@@ -3,7 +3,7 @@
 #include "Formatting.h"
 #include "Timer.h"
 
-using std::cout, std::string, std::ifstream, std::array, std::getline;
+using std::cout, std::string, std::ifstream, std::vector, std::array, std::getline;
 
 void FillDetectorConfig()
 {
@@ -542,7 +542,7 @@ void BiPo::CalculateUnbiasing()
     mean[DataUnbiased][Z] = mean[Data][Z];
     sigma[DataUnbiased][Z] = sigma[Data][Z];
 
-    cout << boldOn << cyanOn << "Calculated Means.\n" << resetFormats;
+    cout << boldOn << cyanOn << "\nCalculated Means.\n" << resetFormats;
     cout << "--------------------------------------------\n";
 
     // Printing out values
@@ -585,23 +585,30 @@ void BiPo::FillOutputFile()
     outputFile.Close();
 }
 
-int BiPoDirectionality()
+int main(int argc, char* argv[])
 {
     // Ignoring warnings
     gErrorIgnoreLevel = kError;
+
+    // Using command line arguments for verbosity control
+    for (int i = 1; i < argc; i++)
+    {
+        if (string(argv[i]) == "-D")
+            DETECTOR_VERBOSITY = 1;
+    }
 
     // Filling detector configuration
     FillDetectorConfig();
 
     // Setting up directionality class
-    BiPo BiPoDirectionality;
+    BiPo directionality;
 
     // Running analysis
-    BiPoDirectionality.ReadFileList();
-    BiPoDirectionality.SetUpHistograms();
-    BiPoDirectionality.SubtractBackgrounds();
-    BiPoDirectionality.CalculateUnbiasing();
-    BiPoDirectionality.FillOutputFile();
+    directionality.ReadFileList();
+    directionality.SetUpHistograms();
+    directionality.SubtractBackgrounds();
+    directionality.CalculateUnbiasing();
+    directionality.FillOutputFile();
 
     return 0;
 }

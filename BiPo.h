@@ -14,7 +14,7 @@
 // Variables
 
 // Print flags
-bool DETECTOR_VERBOSITY = 1;
+bool DETECTOR_VERBOSITY = 0;
 
 // Utilities for parameters
 
@@ -187,20 +187,20 @@ class BiPo
 
     // Setting up the leafs
     // Declaration of leaf types
-    vector<int>* pseg;
-    vector<double>* pt;
-    vector<double>* pz;
-    vector<double>* pPSD;
-    vector<double>* pEtot;
-    vector<int>* pmult_clust;
-    vector<int>* pmult_clust_ioni;
-    vector<int>* fseg;
-    vector<double>* ft;
-    vector<double>* fz;
-    vector<double>* fPSD;
-    vector<double>* fEtot;
-    vector<int>* fmult_clust;
-    vector<int>* fmult_clust_ioni;
+    std::vector<int>* pseg;
+    std::vector<double>* pt;
+    std::vector<double>* pz;
+    std::vector<double>* pPSD;
+    std::vector<double>* pEtot;
+    std::vector<int>* pmult_clust;
+    std::vector<int>* pmult_clust_ioni;
+    std::vector<int>* fseg;
+    std::vector<double>* ft;
+    std::vector<double>* fz;
+    std::vector<double>* fPSD;
+    std::vector<double>* fEtot;
+    std::vector<int>* fmult_clust;
+    std::vector<int>* fmult_clust_ioni;
     Int_t alphaSegment;
     Double_t alphaEnergy;
     Double_t alphaTime;
