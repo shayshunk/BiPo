@@ -493,7 +493,7 @@ void BiPo::SubtractBackgrounds()
 
         // Z is fit to a Guassian and only takes same segment inputs
         // Possible thanks to 1mm resolution in Z
-        TF1 gaussian("Fit", "gaus", -400, 400);
+        TF1 gaussian("Fit", "gaus", -250, 250);
 
         histogram[dataset][TotalDifference][Z].Fit("Fit", "RQ");
 

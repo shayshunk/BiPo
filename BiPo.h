@@ -150,10 +150,10 @@ class BiPo
 
     // Invariables
     static constexpr int xBins = 301;  // Number of bins for our histograms
-    static constexpr int zBins = 801;
+    static constexpr int zBins = 501;
     static constexpr int totalDataLines = 1740;
     static constexpr float xHistogramMax = 150.5;  // Maximum value of bin for histograms
-    static constexpr float zHistogramMax = 400.5;  // Maximum value of bin for histograms
+    static constexpr float zHistogramMax = 250.5;  // Maximum value of bin for histograms
     static constexpr float segmentWidth = 145.7;  // Distance between segment centers in mm
     static constexpr float atmosphericScaling = 1.000254;  // Atmosphering scaling coefficient
 
