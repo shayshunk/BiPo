@@ -560,6 +560,72 @@ void BiPo::CalculateUnbiasing()
     }
 }
 
+void BiPo::CalculateAngles()
+{
+    // Defining variables for readability of code
+    double px, py, pz;
+    double sigmaX, sigmaY, sigmaZ;
+
+    for (int dataset = Data; dataset < DatasetSize; dataset++)
+    {
+        // Grabbing values from current dataset
+        px = mean[dataset][X];
+        py = mean[dataset][Y];
+        pz = mean[dataset][Z];
+
+        sigmaX = sigma[dataset][X];
+        sigmaY = sigma[dataset][Y];
+        sigmaZ = sigma[dataset][Z];
+
+        // phi = arctan(y / x)
+        float tanPhi = py / px;
+        float phiTemp = atan(tanPhi) * 180.0 / pi;
+        float tanPhiError = sqrt(pow((sigmaX * py) / pow(px, 2), 2) + pow(sigmaY / px, 2));
+        float phiErrorTemp = (tanPhiError / (1 + pow(tanPhi, 2))) * 180.0 / pi;
+
+        // theta = arctan(z / sqrt(x^2 + y^2))
+        float tanTheta = pz / sqrt(pow(px, 2) + pow(py, 2));
+        float thetaTemp = atan(tanTheta) * 180.0 / pi;
+        float tanThetaError
+            = sqrt((1 / (px * px + py * py))
+                   * (pow((px * pz * sigmaX / (px * px + py * py)), 2)
+                      + pow((py * pz * sigmaY / (px * px + py * py)), 2) + pow(sigmaZ, 2)));
+        float thetaErrorTemp = (tanThetaError / (1 + pow(tanTheta, 2))) * 180.0 / pi;
+
+        // Storing values
+        phi[dataset] = phiTemp;
+        phiError[dataset] = phiErrorTemp;
+        theta[dataset] = thetaTemp;
+        thetaError[dataset] = thetaErrorTemp;
+    }
+}
+
+void BiPo::OffsetTheta()
+{
+    for (int dataset = Data; dataset < DatasetSize; dataset++)
+    {
+        theta[dataset] = 90 - theta[dataset];
+    }
+}
+
+void BiPo::PrintAngles()
+{
+    cout << boldOn << cyanOn << "Final Angles!\n" << resetFormats;
+    cout << "--------------------------------------------\n";
+
+    for (int dataset = Data; dataset < DatasetSize; dataset++)
+    {
+        cout << "Angle values for: " << boldOn << DatasetToString(dataset) << resetFormats << '\n';
+        cout << greenOn;
+        cout << boldOn << underlineOn << "ϕ:" << resetFormats << greenOn << " " << phi[dataset]
+             << "\u00B0 ± " << phiError[dataset] << "\u00B0.\n";
+        cout << boldOn << underlineOn << "θ:" << resetFormats << greenOn << " " << theta[dataset]
+             << "\u00B0 ± " << thetaError[dataset] << "\u00B0.\n"
+             << resetFormats;
+        cout << "--------------------------------------------\n";
+    }
+}
+
 void BiPo::FillOutputFile()
 {
     // Set up our output file
@@ -612,6 +678,9 @@ int main(int argc, char* argv[])
     directionality.SetUpHistograms();
     directionality.SubtractBackgrounds();
     directionality.CalculateUnbiasing();
+    directionality.CalculateAngles();
+    directionality.OffsetTheta();
+    directionality.PrintAngles();
     directionality.FillOutputFile();
 
     return 0;

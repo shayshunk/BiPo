@@ -10,8 +10,7 @@
 #include "TTree.h"
 
 // Invariables
-
-// Variables
+#define pi 3.14159265358979323846
 
 // Print flags
 bool DETECTOR_VERBOSITY = 0;
@@ -119,6 +118,9 @@ class BiPo
     void FillHistogramUnbiased(int signalSet);
     void CalculateUnbiasing();
     void SubtractBackgrounds();
+    void CalculateAngles();
+    void OffsetTheta();
+    void PrintAngles();
     void FillOutputFile();
 
     // Inline functions
@@ -174,6 +176,10 @@ class BiPo
     // Storing final counts
     std::array<std::array<float, DirectionSize>, DatasetSize> mean;
     std::array<std::array<float, DirectionSize>, DatasetSize> sigma;
+    std::array<float, DatasetSize> phi;
+    std::array<float, DatasetSize> phiError;
+    std::array<float, DatasetSize> theta;
+    std::array<float, DatasetSize> thetaError;
 
     // Utility functions
     inline bool FiducialCut(int segment)
