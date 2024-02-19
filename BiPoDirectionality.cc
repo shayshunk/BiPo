@@ -542,7 +542,8 @@ void BiPo::CalculateUnbiasing()
     mean[DataUnbiased][Z] = mean[Data][Z];
     sigma[DataUnbiased][Z] = sigma[Data][Z];
 
-    cout << boldOn << cyanOn << "\nCalculated Means.\n" << resetFormats;
+    cout << "--------------------------------------------\n";
+    cout << boldOn << cyanOn << "Calculated Means.\n" << resetFormats;
     cout << "--------------------------------------------\n";
 
     // Printing out values
