@@ -455,7 +455,7 @@ void BiPo::SubtractBackgrounds()
                                                                         data.c_str());
 
             histogram[dataset][TotalDifference][direction].Add(
-                &histogram[dataset][Accidental][direction]);
+                &histogram[dataset][Accidental][direction], -1.0);
 
             if (dataset == DataUnbiased || direction == Z)
                 continue;
@@ -465,30 +465,6 @@ void BiPo::SubtractBackgrounds()
             float effEntries = histogram[dataset][TotalDifference][direction].GetEntries();
             sigma[dataset][direction] = histogram[dataset][TotalDifference][direction].GetStdDev()
                                         / sqrt(effEntries);
-
-            cout << "Total entries for Correlated N+ " << AxisToString(direction) << " : "
-                 << histogram[DataUnbiased][Correlated][direction].GetBinContent(297) << '\n';
-
-            cout << "Total entries for Correlated N- " << AxisToString(direction) << " : "
-                 << histogram[DataUnbiased][Correlated][direction].GetBinContent(5) << '\n';
-
-            cout << "Total entries for Correlated N0 " << AxisToString(direction) << " : "
-                 << histogram[DataUnbiased][Correlated][direction].GetBinContent(151) << '\n';
-
-            cout << "Total entries for Correlated " << AxisToString(direction) << " : "
-                 << histogram[DataUnbiased][Correlated][direction].GetEntries() << '\n';
-
-            cout << "Total entries for Accidental N+ " << AxisToString(direction) << " : "
-                 << histogram[DataUnbiased][Accidental][direction].GetBinContent(297) << '\n';
-
-            cout << "Total entries for Accidental N- " << AxisToString(direction) << " : "
-                 << histogram[DataUnbiased][Accidental][direction].GetBinContent(5) << '\n';
-
-            cout << "Total entries for Accidental N0 " << AxisToString(direction) << " : "
-                 << histogram[DataUnbiased][Accidental][direction].GetBinContent(151) << '\n';
-
-            cout << "Total entries for Accidental " << AxisToString(direction) << " : "
-                 << histogram[DataUnbiased][Accidental][direction].GetEntries() << '\n';
         }
 
         // Z is fit to a Guassian and only takes same segment inputs
@@ -502,8 +478,6 @@ void BiPo::SubtractBackgrounds()
 
         mean[dataset][Z] = zMean;
         sigma[dataset][Z] = zError;
-
-        cout << "Did the fit.\n" << zMean << '\n';
 
         // Deleting fit because we don't want the plot options stuck here
         delete histogram[dataset][TotalDifference][Z].GetListOfFunctions()->FindObject("Fit");
@@ -613,10 +587,16 @@ void BiPo::FillOutputFile()
 
 int BiPoDirectionality()
 {
+    // Ignoring warnings
+    gErrorIgnoreLevel = kError;
+
+    // Filling detector configuration
     FillDetectorConfig();
 
+    // Setting up directionality class
     BiPo BiPoDirectionality;
 
+    // Running analysis
     BiPoDirectionality.ReadFileList();
     BiPoDirectionality.SetUpHistograms();
     BiPoDirectionality.SubtractBackgrounds();
