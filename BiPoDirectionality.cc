@@ -597,6 +597,9 @@ int main(int argc, char* argv[])
             DETECTOR_VERBOSITY = 1;
     }
 
+    // Timing everything
+    Timer timer;
+
     // Filling detector configuration
     FillDetectorConfig();
 
