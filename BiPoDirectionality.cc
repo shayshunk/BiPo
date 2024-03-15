@@ -164,8 +164,7 @@ void BiPo::SetUpHistograms()
         auto rootFile = std::make_unique<TFile>(rootFilename);
 
         // Grab rootTree and cast to unique pointer
-        auto rootTree
-            = std::shared_ptr<TTree>(static_cast<TTree*>(rootFile->Get("BiPoTreePlugin/BiPo")));
+        auto rootTree = std::shared_ptr<TTree>(static_cast<TTree*>(rootFile->Get("BiPoTreePlugin/BiPo")));
 
         SetBranchAddresses(rootTree);
 
@@ -229,9 +228,8 @@ void BiPo::SetBranchAddresses(std::shared_ptr<TTree> rootTree)
     rootTree->SetBranchAddress("pEtot", &pEtot, &b_pEtot);  // beta total energy in MeV
     rootTree->SetBranchAddress("pmult_clust", &pmult_clust, &b_pmult_clust);  // prompt cluster
                                                                               // multiplicity
-    rootTree->SetBranchAddress(
-        "pmult_clust_ioni", &pmult_clust_ioni, &b_pmult_clust_ioni);  // prompt cluster multiplicity
-                                                                      // ionization?
+    rootTree->SetBranchAddress("pmult_clust_ioni", &pmult_clust_ioni, &b_pmult_clust_ioni);  // prompt cluster multiplicity
+                                                                                             // ionization?
     // Far Window
     rootTree->SetBranchAddress("fseg", &fseg, &b_fseg);  // beta segment number
     rootTree->SetBranchAddress("ft", &ft, &b_ft);  // beta timing in us
@@ -240,9 +238,8 @@ void BiPo::SetBranchAddresses(std::shared_ptr<TTree> rootTree)
     rootTree->SetBranchAddress("fEtot", &fEtot, &b_fEtot);  // beta total energy in MeV
     rootTree->SetBranchAddress("fmult_clust", &fmult_clust, &b_fmult_clust);  // prompt cluster
                                                                               // multiplicity
-    rootTree->SetBranchAddress(
-        "fmult_clust_ioni", &fmult_clust_ioni, &b_fmult_clust_ioni);  // prompt cluster multiplicity
-                                                                      // ionization?
+    rootTree->SetBranchAddress("fmult_clust_ioni", &fmult_clust_ioni, &b_fmult_clust_ioni);  // prompt cluster multiplicity
+                                                                                             // ionization?
     // Alpha
     rootTree->SetBranchAddress("aseg", &alphaSegment, &b_aseg);  // alpha segment number
     rootTree->SetBranchAddress("aE", &alphaEnergy, &b_aE);  // alpha energy in MeV
@@ -448,14 +445,11 @@ void BiPo::SubtractBackgrounds()
             histogramName = data + " Total Difference " + AxisToString(direction);
 
             // Copying Correlated to start
-            histogram[dataset][TotalDifference][direction]
-                = TH1D(histogram[dataset][Correlated][direction]);
+            histogram[dataset][TotalDifference][direction] = TH1D(histogram[dataset][Correlated][direction]);
 
-            histogram[dataset][TotalDifference][direction].SetNameTitle(histogramName.c_str(),
-                                                                        data.c_str());
+            histogram[dataset][TotalDifference][direction].SetNameTitle(histogramName.c_str(), data.c_str());
 
-            histogram[dataset][TotalDifference][direction].Add(
-                &histogram[dataset][Accidental][direction], -1.0);
+            histogram[dataset][TotalDifference][direction].Add(&histogram[dataset][Accidental][direction], -1.0);
 
             if (dataset == DataUnbiased || direction == Z)
                 continue;
@@ -463,8 +457,7 @@ void BiPo::SubtractBackgrounds()
             mean[dataset][direction] = histogram[dataset][TotalDifference][direction].GetMean();
 
             float effEntries = histogram[dataset][TotalDifference][direction].GetEntries();
-            sigma[dataset][direction] = histogram[dataset][TotalDifference][direction].GetStdDev()
-                                        / sqrt(effEntries);
+            sigma[dataset][direction] = histogram[dataset][TotalDifference][direction].GetStdDev() / sqrt(effEntries);
         }
 
         // Z is fit to a Guassian and only takes same segment inputs
@@ -491,8 +484,7 @@ void BiPo::CalculateUnbiasing()
     double rPlus = 0, rMinus = 0;
     double p = 0, pError = 0;
     double nPlus = 0, nPlusPlus = 0, nMinus = 0, nMinusMinus = 0, nPlusMinus = 0;
-    double nPlusError = 0, nPlusPlusError = 0, nMinusError = 0, nMinusMinusError = 0,
-           nPlusMinusError = 0;
+    double nPlusError = 0, nPlusPlusError = 0, nMinusError = 0, nMinusMinusError = 0, nPlusMinusError = 0;
 
     for (int direction = X; direction < Z; direction++)
     {
@@ -514,29 +506,32 @@ void BiPo::CalculateUnbiasing()
 
         p = segmentWidth * (rPlus - rMinus) / (rPlus + rMinus + 1);
 
-        pError = segmentWidth
-                 * pow(1
-                           / ((nMinus * (nPlusMinus + nPlusPlus)
-                               + (nMinusMinus + nPlusMinus) * (nPlus + nPlusMinus + nPlusPlus))),
-                       2)
-                 * sqrt(pow((nMinusMinus + nPlusMinus) * (nPlusMinus + nPlusPlus), 2)
-                            * (pow(nPlusError * (2 * nMinus + nMinusMinus + nPlusMinus), 2)
-                               + pow(nMinusError * (2 * nPlus + nPlusPlus + nPlusMinus), 2))
-                        + pow((nPlus * (nPlusMinus + nMinusMinus)
-                               * (2 * nMinus + nMinusMinus + nPlusMinus) * nPlusPlusError),
-                              2)
-                        + pow((nPlusMinusError
-                               * (nPlus * pow((nMinusMinus + nPlusMinus), 2)
-                                  + nMinus
-                                        * (2 * nMinusMinus * nPlus - 2 * nPlus * nPlusPlus
-                                           - pow((nPlusMinus + nPlusPlus), 2)))),
-                              2)
-                        + pow((nMinus * (nPlusMinus + nPlusPlus)
-                               * (2 * nPlus + nPlusMinus + nPlusPlus) * nMinusMinusError),
-                              2));
+        pError
+            = segmentWidth
+              * pow(1 / ((nMinus * (nPlusMinus + nPlusPlus) + (nMinusMinus + nPlusMinus) * (nPlus + nPlusMinus + nPlusPlus))), 2)
+              * sqrt(pow((nMinusMinus + nPlusMinus) * (nPlusMinus + nPlusPlus), 2)
+                         * (pow(nPlusError * (2 * nMinus + nMinusMinus + nPlusMinus), 2)
+                            + pow(nMinusError * (2 * nPlus + nPlusPlus + nPlusMinus), 2))
+                     + pow((nPlus * (nPlusMinus + nMinusMinus) * (2 * nMinus + nMinusMinus + nPlusMinus) * nPlusPlusError), 2)
+                     + pow((nPlusMinusError
+                            * (nPlus * pow((nMinusMinus + nPlusMinus), 2)
+                               + nMinus * (2 * nMinusMinus * nPlus - 2 * nPlus * nPlusPlus - pow((nPlusMinus + nPlusPlus), 2)))),
+                           2)
+                     + pow((nMinus * (nPlusMinus + nPlusPlus) * (2 * nPlus + nPlusMinus + nPlusPlus) * nMinusMinusError), 2));
 
         mean[DataUnbiased][direction] = p;
         sigma[DataUnbiased][direction] = pError;
+
+        if (NCOUNT_VERBOSITY)
+        {
+            cout << "N counts for: " << boldOn << "Data Unbiased " << AxisToString(direction) << '\n';
+            cout << "N+: " << resetFormats << nPlus << '\n';
+            cout << boldOn << "N-: " << resetFormats << nMinus << '\n';
+            cout << boldOn << "N++: " << resetFormats << nPlusPlus << '\n';
+            cout << boldOn << "N--: " << resetFormats << nMinusMinus << '\n';
+            cout << boldOn << "N+-: " << resetFormats << nPlusMinus << '\n';
+            cout << "--------------------------------------------\n";
+        }
     }
 
     mean[DataUnbiased][Z] = mean[Data][Z];
@@ -549,12 +544,11 @@ void BiPo::CalculateUnbiasing()
     // Printing out values
     for (int dataset = Data; dataset < DatasetSize; dataset++)
     {
-        cout << "Mean and sigma values for: " << boldOn << DatasetToString(dataset) << resetFormats
-             << '\n';
+        cout << "Mean and sigma values for: " << boldOn << DatasetToString(dataset) << resetFormats << '\n';
         for (int direction = X; direction < DirectionSize; direction++)
         {
-            cout << boldOn << "p" << AxisToString(direction) << ": " << resetFormats
-                 << mean[dataset][direction] << " ± " << sigma[dataset][direction] << '\n';
+            cout << boldOn << "p" << AxisToString(direction) << ": " << resetFormats << mean[dataset][direction] << " ± "
+                 << sigma[dataset][direction] << '\n';
         }
         cout << "--------------------------------------------\n";
     }
@@ -586,10 +580,9 @@ void BiPo::CalculateAngles()
         // theta = arctan(z / sqrt(x^2 + y^2))
         float tanTheta = pz / sqrt(pow(px, 2) + pow(py, 2));
         float thetaTemp = atan(tanTheta) * 180.0 / pi;
-        float tanThetaError
-            = sqrt((1 / (px * px + py * py))
-                   * (pow((px * pz * sigmaX / (px * px + py * py)), 2)
-                      + pow((py * pz * sigmaY / (px * px + py * py)), 2) + pow(sigmaZ, 2)));
+        float tanThetaError = sqrt((1 / (px * px + py * py))
+                                   * (pow((px * pz * sigmaX / (px * px + py * py)), 2)
+                                      + pow((py * pz * sigmaY / (px * px + py * py)), 2) + pow(sigmaZ, 2)));
         float thetaErrorTemp = (tanThetaError / (1 + pow(tanTheta, 2))) * 180.0 / pi;
 
         // Storing values
@@ -617,10 +610,10 @@ void BiPo::PrintAngles()
     {
         cout << "Angle values for: " << boldOn << DatasetToString(dataset) << resetFormats << '\n';
         cout << greenOn;
-        cout << boldOn << underlineOn << "ϕ:" << resetFormats << greenOn << " " << phi[dataset]
-             << "\u00B0 ± " << phiError[dataset] << "\u00B0.\n";
-        cout << boldOn << underlineOn << "θ:" << resetFormats << greenOn << " " << theta[dataset]
-             << "\u00B0 ± " << thetaError[dataset] << "\u00B0.\n"
+        cout << boldOn << underlineOn << "ϕ:" << resetFormats << greenOn << " " << phi[dataset] << "\u00B0 ± "
+             << phiError[dataset] << "\u00B0.\n";
+        cout << boldOn << underlineOn << "θ:" << resetFormats << greenOn << " " << theta[dataset] << "\u00B0 ± "
+             << thetaError[dataset] << "\u00B0.\n"
              << resetFormats;
         cout << "--------------------------------------------\n";
     }
@@ -644,9 +637,7 @@ void BiPo::FillOutputFile()
         }
     }
 
-    cout << boldOn << cyanOn << "Filled output file: " << resetFormats << blueOn << boldOn
-         << "BiPo.root!\n"
-         << resetFormats;
+    cout << boldOn << cyanOn << "Filled output file: " << resetFormats << blueOn << boldOn << "BiPo.root!\n" << resetFormats;
     cout << "--------------------------------------------\n";
 
     outputFile.Close();
@@ -662,6 +653,8 @@ int main(int argc, char* argv[])
     {
         if (string(argv[i]) == "-D")
             DETECTOR_VERBOSITY = 1;
+        else if (string(argv[i]) == "-N")
+            NCOUNT_VERBOSITY = 1;
     }
 
     // Timing everything

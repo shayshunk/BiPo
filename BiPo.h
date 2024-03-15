@@ -14,6 +14,7 @@
 
 // Print flags
 bool DETECTOR_VERBOSITY = 0;
+bool NCOUNT_VERBOSITY = 0;
 
 // Utilities for parameters
 
