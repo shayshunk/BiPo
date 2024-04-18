@@ -489,7 +489,7 @@ void BiPo::SubtractBackgrounds()
         // Multiplicity background subtraction
         string histogramName;
         string data = DatasetToString(dataset);
-        histogramName = "Multiplicity " + data + "Total Difference";
+        histogramName = "Multiplicity " + data + " Total Difference";
 
         multiplicity[dataset][TotalDifference] = TH1I(multiplicity[dataset][Correlated]);
         multiplicity[dataset][TotalDifference].SetNameTitle(histogramName.c_str(), data.c_str());
