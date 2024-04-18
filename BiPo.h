@@ -6,6 +6,7 @@
 #include "TF1.h"
 #include "TFile.h"
 #include "TH1D.h"
+#include "TH1I.h"
 #include "TLeaf.h"
 #include "TTree.h"
 
@@ -132,6 +133,7 @@ class BiPo
   private:
     // Histogram to count IBDs
     std::array<std::array<std::array<TH1D, DirectionSize>, SignalSize>, DatasetSize> histogram;
+    std::array<std::array<TH1I, SignalSize>, DatasetSize> multiplicity;
 
     // File list
     std::array<std::string, 1740> files;
@@ -185,8 +187,7 @@ class BiPo
     // Utility functions
     inline bool FiducialCut(int segment)
     {
-        if (segment >= 140 || segment % 14 == 0 || (segment + 1) % 14 == 0 || segment == 25
-            || segment == 26)
+        if (segment >= 140 || segment % 14 == 0 || (segment + 1) % 14 == 0 || segment == 25 || segment == 26)
             return true;
         else
             return false;

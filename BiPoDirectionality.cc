@@ -125,6 +125,14 @@ BiPo::BiPo()
                 histogram[dataset][signalSet][direction]
                     = TH1D(histogramName.c_str(), data.c_str(), bins, -histogramMax, histogramMax);
             }
+
+            string data = DatasetToString(dataset);
+            string signal = SignalToString(signalSet);
+            string histogramName = "Multiplicity " + data + " " + signal;
+
+            int bins = 9;
+
+            multiplicity[dataset][signalSet] = TH1I(histogramName.c_str(), data.c_str(), bins, 1, bins);
         }
     }
 
@@ -323,6 +331,8 @@ void BiPo::FillHistogram()
                 histogram[Data][Correlated][Z].Fill(dz);
                 FillHistogramUnbiased(Correlated);
             }
+
+            multiplicity[Data][Correlated].Fill(j + 1);
         }
     }
 
@@ -395,6 +405,8 @@ void BiPo::FillHistogram()
                 histogram[Data][Accidental][Z].Fill(dz, n2f);
                 FillHistogramUnbiased(Accidental);
             }
+
+            multiplicity[Data][Accidental].Fill(j + 1, n2f);
         }
     }
 }
@@ -408,7 +420,6 @@ void BiPo::FillHistogramUnbiased(int signalSet)
     double weight = (signalSet == Accidental) ? n2f : 1;
 
     // Check for live neighbors in different directions
-
     posDirectionX = CheckNeighbor(alphaSegment, 'r');
     negDirectionX = CheckNeighbor(alphaSegment, 'l');
     posDirectionY = CheckNeighbor(alphaSegment, 'u');
@@ -474,6 +485,15 @@ void BiPo::SubtractBackgrounds()
 
         // Deleting fit because we don't want the plot options stuck here
         delete histogram[dataset][TotalDifference][Z].GetListOfFunctions()->FindObject("Fit");
+
+        // Multiplicity background subtraction
+        string histogramName;
+        string data = DatasetToString(dataset);
+        histogramName = "Multiplicity " + data + "Total Difference";
+
+        multiplicity[dataset][TotalDifference] = TH1I(multiplicity[dataset][Correlated]);
+        multiplicity[dataset][TotalDifference].SetNameTitle(histogramName.c_str(), data.c_str());
+        multiplicity[dataset][TotalDifference].Add(&multiplicity[dataset][Accidental], -1.0);
     }
 }
 
@@ -634,6 +654,8 @@ void BiPo::FillOutputFile()
             {
                 histogram[dataset][signalSet][direction].Write();
             }
+
+            multiplicity[dataset][signalSet].Write();
         }
     }
 
